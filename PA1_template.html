@@ -203,13 +203,16 @@ hr {
 <body>
 <p>This is the R Markdown document for the Reproducible Research Peer Assessment Project #1.  The following is the code and results to answer the following assigned questions:</p>
 
-<p>library(ggplot2)
-library(Hmisc)
-library(lattice)</p>
+<p>library(ggplot2)<br/>
+library(Hmisc)<br/>
+library(lattice)  </p>
 
 <h2>Loading and preprocessing the data</h2>
 
-<pre><code class="r">options(scipen = 1, digits = 2)
+<p>This chunk assumes the &ldquo;activity&rdquo; file is in the working directory  </p>
+
+<pre><code class="r"># set numeric display options, then read in csv file
+options(scipen = 1, digits = 2)
 activity &lt;- read.csv(&quot;activity.csv&quot;)
 </code></pre>
 
@@ -217,7 +220,6 @@ activity &lt;- read.csv(&quot;activity.csv&quot;)
 
 <pre><code class="r">    # Break out the steps by Day...
     stepsDate &lt;- tapply(activity$steps, activity$date, sum, na.rm=TRUE)
-#aggregate(steps ~ date,activity,sum)  #tapply(activity$steps, activity$date, sum, na.rm=TRUE)
 </code></pre>
 
 <h3>Histogram of Steps per Day</h3>
@@ -233,7 +235,7 @@ activity &lt;- read.csv(&quot;activity.csv&quot;)
     medianSteps &lt;- median(stepsDate)
 </code></pre>
 
-<p>The MEAN Steps per Day is 9354.23 and the MEDIAN Steps per Day is 10395.</p>
+<p><strong>The MEAN Steps per Day is 9354.23 and the MEDIAN Steps per Day is 10395.</strong></p>
 
 <h2>What is the average daily activity pattern?</h2>
 
@@ -251,23 +253,24 @@ activity &lt;- read.csv(&quot;activity.csv&quot;)
 ## 6       25 2.094
 </code></pre>
 
-<h4>Plot the Average Steps per Interval and find the MAX Interval</h4>
+<h3>Plot the Average Steps per Interval and find the Interval with the HIGHEST MEAN STEPS</h3>
 
-<pre><code class="r">    plot(IntervalMean$interval,IntervalMean$steps, &quot;l&quot;,xlab=&quot;5-Minute Interval&quot;, ylab=&quot;Average Steps&quot;)
+<pre><code class="r">    # Find max interval steps on average, then plot the interval mean values
+    MAXInt &lt;- IntervalMean[IntervalMean$steps==max(IntervalMean$steps),]
+    plot(IntervalMean$interval,IntervalMean$steps, &quot;l&quot;,xlab=&quot;5-Minute Interval&quot;, ylab=&quot;Average Steps&quot;)
 </code></pre>
 
 <p><img src="data:image/png;base64,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" alt="plot of chunk TimePlot"/> </p>
 
-<pre><code class="r">    MAXInt &lt;- IntervalMean[IntervalMean$steps==max(IntervalMean$steps),]
-</code></pre>
-
-<p>The Interval with the highest AVERAGE number of steps across all days is INTERVAL 835 with an average step count of 206.17.</p>
+<p><strong>The Interval with the highest AVERAGE number of steps across all days is INTERVAL 835 with an AVERAGE STEP COUNT of 206.17.</strong></p>
 
 <h2>Imputing missing values and fill them in to create a new dataset</h2>
 
-<pre><code class="r">   missing &lt;- nrow(activity)-nrow(activity[complete.cases(activity),])
+<p><strong>The strategy for imputing missing values is to replace NA values with the MEAN interval value</strong></p>
 
-   #  Impute values into rows with &quot;NA&quot; step entries
+<pre><code class="r">    #  Find the missing rows and count them
+   missing &lt;- nrow(activity)-nrow(activity[complete.cases(activity),])
+      #  Impute values into rows with &quot;NA&quot; step entries
    #  Choose to insert the interval MEAN where NAs are found
    # Create a new dataset with Imputed data
    imputedactivity &lt;- activity
@@ -278,7 +281,7 @@ activity &lt;- read.csv(&quot;activity.csv&quot;)
    imputedactivity[x] &lt;- meansteps
 </code></pre>
 
-<p>The number of missing values (NAs) in the source dataset is 2304.</p>
+<p><strong>The number of missing values (NAs) in the source dataset is 2304.</strong></p>
 
 <h4>Revised Histogram and Statistics for Imputed Data</h4>
 
@@ -290,13 +293,41 @@ activity &lt;- read.csv(&quot;activity.csv&quot;)
 
 <h3>Calculate the Mean and Median of the Total Steps per Day</h3>
 
-<pre><code class="r">    meanSteps &lt;- mean(stepsImputed)
-    medianSteps &lt;- median(stepsImputed)
+<pre><code class="r">    meanStepsI &lt;- mean(stepsImputed)
+    medianStepsI &lt;- median(stepsImputed)
 </code></pre>
 
-<p>The IMPUTED MEAN Steps per Day is 10766.19 and the MEDIAN Steps per Day is 10766.19.</p>
+<p><strong>The IMPUTED MEAN Steps per Day is 10766.19 and the MEDIAN Steps per Day is 10766.19.</strong></p>
+
+<h4>What is the impact of imputing the missing data?</h4>
+
+<p>Calculate and compile the mean and median values for the raw and imputed datasets. Print a results table.</p>
+
+<pre><code class="r">    library(xtable)
+    imputedstats &lt;- c(meanStepsI, medianStepsI)
+    rawstats &lt;- c(meanSteps,medianSteps)
+    statscomb &lt;- rbind(rawstats,imputedstats)
+    n &lt;- c(&quot;Mean&quot;, &quot;Median&quot;)
+    colnames(statscomb) &lt;- n
+        xt &lt;-    xtable(statscomb)
+    print(xt,&quot;HTML&quot;)
+</code></pre>
+
+<!-- html table generated in R 3.2.2 by xtable 1.8-0 package -->
+
+<!-- Sun Dec 20 10:28:06 2015 -->
+
+<table border=1>
+<tr> <th>  </th> <th> Mean </th> <th> Median </th>  </tr>
+  <tr> <td align="right"> rawstats </td> <td align="right"> 9354.23 </td> <td align="right"> 10395.00 </td> </tr>
+  <tr> <td align="right"> imputedstats </td> <td align="right"> 10766.19 </td> <td align="right"> 10766.19 </td> </tr>
+   </table>
+
+<p><strong><em>The Mean and Median both increase using imputed data because the NAs in the original data set are now set to the median interval value.  The mean and median of the imputed set are the same.  As seen in the histogram, the &ldquo;0&rdquo; bin is no longer as prominent in the frequency distribution as it was for the raw data.</em></strong></p>
 
 <h2>Are there differences in activity patterns between weekdays and weekends?</h2>
+
+<p>Classify the imputed dataset entries into &ldquo;weekday&rdquo; or &ldquo;weekend&rdquo; groups, then prepare a panel plot of the results</p>
 
 <pre><code class="r">    library(ggplot2)  
     y &lt;- weekdays(as.Date(imputedactivity$date))
@@ -337,9 +368,9 @@ activity &lt;- read.csv(&quot;activity.csv&quot;)
     wkndmean &lt;- mean(wknd$steps)
 </code></pre>
 
-<p>During the week, there is a shorter spike in activity with overall lower amount of steps on average.  The weekend steps are more consistently distributed during the day.</p>
+<p><strong><em>During the week, there is a shorter spike in activity with overall lower amount of steps on average.  The weekend steps are more consistently distributed during the day.</em></strong></p>
 
-<p>The Mean Weekend Steps is 42.37 and the Mean Weekday Steps is 35.61.</p>
+<p><strong>The Mean Weekend Steps is 42.37 and the Mean Weekday Steps is 35.61.</strong></p>
 
 </body>
 

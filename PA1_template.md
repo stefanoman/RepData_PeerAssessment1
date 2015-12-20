@@ -11,13 +11,16 @@ title: "Reproducible Research: Peer Assessment 1"
 
 This is the R Markdown document for the Reproducible Research Peer Assessment Project #1.  The following is the code and results to answer the following assigned questions:
 
-library(ggplot2)
-library(Hmisc)
-library(lattice)
+library(ggplot2)  
+library(Hmisc)  
+library(lattice)  
 
 ## Loading and preprocessing the data
+This chunk assumes the "activity" file is in the working directory  
+
 
 ```r
+# set numeric display options, then read in csv file
 options(scipen = 1, digits = 2)
 activity <- read.csv("activity.csv")
 ```
@@ -27,7 +30,6 @@ activity <- read.csv("activity.csv")
 ```r
     # Break out the steps by Day...
     stepsDate <- tapply(activity$steps, activity$date, sum, na.rm=TRUE)
-#aggregate(steps ~ date,activity,sum)  #tapply(activity$steps, activity$date, sum, na.rm=TRUE)
 ```
 
 ### Histogram of Steps per Day
@@ -44,7 +46,7 @@ activity <- read.csv("activity.csv")
     meanSteps <- mean(stepsDate)
     medianSteps <- median(stepsDate)
 ```
-The MEAN Steps per Day is 9354.23 and the MEDIAN Steps per Day is 10395.
+**The MEAN Steps per Day is 9354.23 and the MEDIAN Steps per Day is 10395.**
 
 ## What is the average daily activity pattern?
 
@@ -65,28 +67,29 @@ The MEAN Steps per Day is 9354.23 and the MEDIAN Steps per Day is 10395.
 ## 6       25 2.094
 ```
 
-#### Plot the Average Steps per Interval and find the MAX Interval
+  
+### Plot the Average Steps per Interval and find the Interval with the HIGHEST MEAN STEPS
 
 ```r
+    # Find max interval steps on average, then plot the interval mean values
+    MAXInt <- IntervalMean[IntervalMean$steps==max(IntervalMean$steps),]
     plot(IntervalMean$interval,IntervalMean$steps, "l",xlab="5-Minute Interval", ylab="Average Steps")
 ```
 
 ![plot of chunk TimePlot](figure/TimePlot-1.png) 
 
-```r
-    MAXInt <- IntervalMean[IntervalMean$steps==max(IntervalMean$steps),]
-```
-
-The Interval with the highest AVERAGE number of steps across all days is INTERVAL 835 with an average step count of 206.17.
+**The Interval with the highest AVERAGE number of steps across all days is INTERVAL 835 with an AVERAGE STEP COUNT of 206.17.**
 
 
 
 ## Imputing missing values and fill them in to create a new dataset
+**The strategy for imputing missing values is to replace NA values with the MEAN interval value**
+
 
 ```r
+    #  Find the missing rows and count them
    missing <- nrow(activity)-nrow(activity[complete.cases(activity),])
-   
-   #  Impute values into rows with "NA" step entries
+      #  Impute values into rows with "NA" step entries
    #  Choose to insert the interval MEAN where NAs are found
    # Create a new dataset with Imputed data
    imputedactivity <- activity
@@ -97,7 +100,7 @@ The Interval with the highest AVERAGE number of steps across all days is INTERVA
    imputedactivity[x] <- meansteps
 ```
 
-The number of missing values (NAs) in the source dataset is 2304.
+**The number of missing values (NAs) in the source dataset is 2304.**
 
 
 #### Revised Histogram and Statistics for Imputed Data
@@ -112,13 +115,40 @@ The number of missing values (NAs) in the source dataset is 2304.
 ### Calculate the Mean and Median of the Total Steps per Day
 
 ```r
-    meanSteps <- mean(stepsImputed)
-    medianSteps <- median(stepsImputed)
+    meanStepsI <- mean(stepsImputed)
+    medianStepsI <- median(stepsImputed)
 ```
 
-The IMPUTED MEAN Steps per Day is 10766.19 and the MEDIAN Steps per Day is 10766.19.
+**The IMPUTED MEAN Steps per Day is 10766.19 and the MEDIAN Steps per Day is 10766.19.**
+
+#### What is the impact of imputing the missing data?
+Calculate and compile the mean and median values for the raw and imputed datasets. Print a results table.
+
+
+
+```r
+    library(xtable)
+    imputedstats <- c(meanStepsI, medianStepsI)
+    rawstats <- c(meanSteps,medianSteps)
+    statscomb <- rbind(rawstats,imputedstats)
+    n <- c("Mean", "Median")
+    colnames(statscomb) <- n
+        xt <-    xtable(statscomb)
+    print(xt,"HTML")
+```
+
+<!-- html table generated in R 3.2.2 by xtable 1.8-0 package -->
+<!-- Sun Dec 20 10:28:06 2015 -->
+<table border=1>
+<tr> <th>  </th> <th> Mean </th> <th> Median </th>  </tr>
+  <tr> <td align="right"> rawstats </td> <td align="right"> 9354.23 </td> <td align="right"> 10395.00 </td> </tr>
+  <tr> <td align="right"> imputedstats </td> <td align="right"> 10766.19 </td> <td align="right"> 10766.19 </td> </tr>
+   </table>
+***The Mean and Median both increase using imputed data because the NAs in the original data set are now set to the median interval value.  The mean and median of the imputed set are the same.  As seen in the histogram, the "0" bin is no longer as prominent in the frequency distribution as it was for the raw data.***
 
 ## Are there differences in activity patterns between weekdays and weekends?
+Classify the imputed dataset entries into "weekday" or "weekend" groups, then prepare a panel plot of the results
+
 
 ```r
     library(ggplot2)  
@@ -163,8 +193,8 @@ The IMPUTED MEAN Steps per Day is 10766.19 and the MEDIAN Steps per Day is 10766
     wkndmean <- mean(wknd$steps)
 ```
 
-During the week, there is a shorter spike in activity with overall lower amount of steps on average.  The weekend steps are more consistently distributed during the day.
+***During the week, there is a shorter spike in activity with overall lower amount of steps on average.  The weekend steps are more consistently distributed during the day.***
 
-The Mean Weekend Steps is 42.37 and the Mean Weekday Steps is 35.61.
+**The Mean Weekend Steps is 42.37 and the Mean Weekday Steps is 35.61.**
 
 
