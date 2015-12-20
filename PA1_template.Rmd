@@ -1,25 +1,126 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
+author: "Stefanoman"
+date: "December 19, 2015"
+output: html_document
+html_document:
     keep_md: true
 ---
 
+This is the R Markdown document for the Reproducible Research Peer Assessment Project #1.  The following is the code and results to answer the following assigned questions:
+
+library(ggplot2)
+library(Hmisc)
+library(lattice)
 
 ## Loading and preprocessing the data
-
-
+```{r Loading}
+options(scipen = 1, digits = 2)
+activity <- read.csv("activity.csv")
+```
 
 ## What is mean total number of steps taken per day?
+```{r steptotals}
+    # Break out the steps by Day...
+    stepsDate <- tapply(activity$steps, activity$date, sum, na.rm=TRUE)
+#aggregate(steps ~ date,activity,sum)  #tapply(activity$steps, activity$date, sum, na.rm=TRUE)
 
+```
 
+### Histogram of Steps per Day
+```{r Histogram, fig.height=4}
+    hist(stepsDate,col="red",breaks=10,main="Histogram of Steps By Day", xlab="Steps by Day", ylab="Frequency of Occurence")
+```
+
+### Calculate the Mean and Median of the Total Steps per Day
+```{r MeanMedian}
+    meanSteps <- mean(stepsDate)
+    medianSteps <- median(stepsDate)
+```
+The MEAN Steps per Day is `r meanSteps` and the MEDIAN Steps per Day is `r medianSteps`.
 
 ## What is the average daily activity pattern?
 
+```{r AvgDailyActivity}
+    # Need to find the average for each 5 min. time interval across all days
+    IntervalMean<- aggregate(steps ~ interval,activity,mean)
+    head(IntervalMean)
+```
+
+#### Plot the Average Steps per Interval and find the MAX Interval
+```{r TimePlot}
+    plot(IntervalMean$interval,IntervalMean$steps, "l",xlab="5-Minute Interval", ylab="Average Steps")
+    MAXInt <- IntervalMean[IntervalMean$steps==max(IntervalMean$steps),]
+```
+
+The Interval with the highest AVERAGE number of steps across all days is INTERVAL `r MAXInt[1,1]` with an average step count of `r MAXInt[1,2]`.
 
 
-## Imputing missing values
+
+## Imputing missing values and fill them in to create a new dataset
+```{r find missing}
+
+   missing <- nrow(activity)-nrow(activity[complete.cases(activity),])
+   
+   #  Impute values into rows with "NA" step entries
+   #  Choose to insert the interval MEAN where NAs are found
+   # Create a new dataset with Imputed data
+   imputedactivity <- activity
+   #imputedactivity$steps <- impute(activity$steps,fun=mean)
+   cc <- complete.cases(activity)
+   meansteps <- mean(activity$steps[cc])
+   x <- is.na(imputedactivity)
+   imputedactivity[x] <- meansteps
+```   
+
+The number of missing values (NAs) in the source dataset is `r missing`.
 
 
+#### Revised Histogram and Statistics for Imputed Data
+```{r HistImputed, fig.height=4}
+    stepsImputed <- tapply(imputedactivity$steps, imputedactivity$date, sum, na.rm=TRUE)
+    hist(stepsImputed,col="red",breaks=10,main="Histogram of Imputed Steps By Day", xlab="Steps by Day (Imputed)", ylab = "Frequency of Occurence")
+```
+
+### Calculate the Mean and Median of the Total Steps per Day
+```{r MeanMedian Imputed}
+    meanSteps <- mean(stepsImputed)
+    medianSteps <- median(stepsImputed)
+```
+
+The IMPUTED MEAN Steps per Day is `r meanSteps` and the MEDIAN Steps per Day is `r medianSteps`.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r week days, fig.height=4}
+    library(ggplot2)  
+    y <- weekdays(as.Date(imputedactivity$date))
+      new <- cbind(imputedactivity,y)
+      names(new)[4] <- paste("Day")
+      wkdy <- new[new$Day!="Saturday" & new$Day !="Sunday",]
+      wknd <- new[new$Day=="Saturday" | new$Day =="Sunday",]
+      new$Day <- gsub("Sunday","Weekend",new$Day)
+      new$Day <- gsub("Saturday","Weekend",new$Day)
+      wk <- which(new$Day != "Weekend") 
+      new[wk,4]<- "Weekday"
+      new$Day <- as.factor(new$Day)
+      
+    # Need to find the average for each 5 min. time interval across all days
+    IntervalMean2<- aggregate(steps ~ interval + Day,new,mean)
+    head(IntervalMean2)
+    
+    ggplot(IntervalMean2, aes(interval, steps, color=Day)) + 
+    geom_line() + 
+    facet_grid(Day ~ .) +
+    xlab("5-minute Interval") + 
+    ylab("Average Number of Steps")
+    
+    wkdymean <- mean(wkdy$steps)
+    wkndmean <- mean(wknd$steps)
+    
+```
+
+During the week, there is a shorter spike in activity with overall lower amount of steps on average.  The weekend steps are more consistently distributed during the day.
+
+The Mean Weekend Steps is `r wkndmean` and the Mean Weekday Steps is `r wkdymean`.
+
+
